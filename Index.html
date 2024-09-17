@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Speaky - Sprachlernen</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            text-align: center;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: auto;
+            padding: 20px;
+        }
+
+        .flag-image {
+            width: 100%;
+            height: auto;
+        }
+
+        h1 {
+            margin-top: 20px;
+        }
+
+        .button-container {
+            margin-top: 20px;
+        }
+
+        button {
+            padding: 10px 20px;
+            margin: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #007BFF;
+            color: white;
+        }
+
+        .lessons-container {
+            margin-top: 30px;
+        }
+
+        .section {
+            margin-top: 20px;
+        }
+
+        .question {
+            margin-top: 15px;
+        }
+
+        .options {
+            list-style-type: none;
+            padding-left: 0;
+        }
+
+        .options li {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/Flag_of_Europe.svg/1920px-Flag_of_Europe.svg.png" alt="Europäische Flaggen" class="flag-image">
+
+        <h1>Lernen Sie einfach und effektiv mit Speaky!</h1>
+
+        <div id="userInfo"></div>
+
+        <div id="loginForm">
+            <h2>Login</h2>
+            <input type="text" id="username" placeholder="Benutzername">
+            <button onclick="login()">Einloggen</button>
+        </div>
+
+        <div class="button-container" style="display:none;">
+             <button onclick="selectExercise('Englisch')">Englisch</button>
+             <button onclick="selectExercise('Französisch')">Französisch</button>
+         </div>
+
+         <!-- Container für Lektionen -->
+         <div id="lessons" class="lessons-container"></div>
+     </div>
+
+     <script>
+         let currentUser = null; // Aktueller Benutzer
+         let points = 0; // Punkte des Benutzers
+         let gems = 0; // Gems des Benutzers
+
+         const exercises = {
+             Englisch : generateLessons("Englisch"),
+             Französisch : generateLessons("Französisch")
+         };
+
+         function generateLessons(language) {
+             const lessons = [];
+             for (let i = 1; i <= 20; i++) { // Erstelle 20 Lektionen
+                 const lesson = [];
+                 for (let j = 1; j <= 10; j++) { // Jede Lektion hat 10 Fragen
+                     lesson.push({
+                         question: `Frage ${j} in Lektion ${i} (${language})`,
+                         options: [`Antwort A${j}`, `Antwort B${j}`, `Antwort C${j}`],
+                         answer: `Antwort A${j}`
+                     });
+                 }
+                 lessons.push(lesson);
+             }
+             return lessons;
+         }
+
+         function login() {
+             const username = document.getElementById('username').value;
+
+             if (username) {
+                 currentUser = username; // Setze den aktuellen Benutzer
+                 document.getElementById('userInfo').innerText = `Willkommen, ${currentUser}! Punkte: ${points}, Gems: ${gems}`;
+                 document.getElementById('loginForm').style.display = 'none'; // Verstecke das Login-Formular
+                 showMainButtons(); // Zeige die Hauptbuttons an
+             } else {
+                 alert("Bitte geben Sie einen Benutzernamen ein.");
+             }
+         }
+
+         function showMainButtons() {
+             document.querySelector('.button-container').style.display = 'block';
+         }
+
+         function selectExercise(language) { 
+             const lessonsContainer = document.getElementById('lessons');
+
+             // Leere den Container
+             lessonsContainer.innerHTML = '';
+
+             // Füge Lektionen hinzu
+             exercises[language].forEach((lesson, index) => {
+                 const sectionDiv = document.createElement('div');
+                 sectionDiv.classList.add('section');
+
+                 const sectionTitle = document.createElement('h2');
+                 sectionTitle.textContent = `Lektion ${index + 1}`;
+                 sectionDiv.appendChild(sectionTitle);
+
+                 // Füge Fragen hinzu
+                 lesson.forEach((q, qIndex) => {
+                     const questionDiv = document.createElement('div');
+                     questionDiv.classList.add('question');
+
+                     const questionText = document.createElement('p');
+                     questionText.textContent = q.question;
+
+                     const optionsList = document.createElement('ul');
+                     optionsList.classList.add('options');
+
+                     q.options.forEach(option => {
+                         const optionItem = document.createElement('li');
+                         optionItem.innerHTML = `<input type="radio" name="question${index}${qIndex}" value="${option}"> ${option}`;
+                         optionsList.appendChild(optionItem);
+                     });
+
+                     const submitButton = document.createElement('button');
+                     submitButton.textContent = 'Antworten';
+                     submitButton.onclick = () => checkAnswer(q.answer, `question${index}${qIndex}`);
+
+                     questionDiv.appendChild(questionText);
+                     questionDiv.appendChild(optionsList);
+                     questionDiv.appendChild(submitButton);
+
+                     sectionDiv.appendChild(questionDiv);
+                 });
+
+                 lessonsContainer.appendChild(sectionDiv);
+             });
+         }
+
+         function checkAnswer(correctAnswer, questionName) {
+             const selectedOption = document.querySelector(`input[name="${questionName}"]:checked`);
+
+             if (selectedOption) {
+                 if (selectedOption.value === correctAnswer) {
+                     alert("Richtig!");
+                     points += 10; // Punkte hinzufügen
+                     gems += Math.floor(Math.random() * 5); // Zufällige Gems hinzufügen
+                     document.getElementById('userInfo').innerText = `Willkommen, ${currentUser}! Punkte: ${points}, Gems: ${gems}`;
+                 } else {
+                     alert("Leider falsch. Die richtige Antwort ist '" + correctAnswer + "'");
+                 }
+
+                 const options = document.querySelectorAll(`input[name="${questionName}"]`);
+                 options.forEach(option => option.disabled = true);
+
+             } else {
+                 alert("Bitte wählen Sie eine Antwort aus.");
+             }
+         }
+     </script>
+</body>
+</html>
